@@ -13,7 +13,7 @@ event[] → reducer → state + proof
 ## Install
 
 ```bash
-npm install proof-compute
+npm install @proof-compute/proof-compute
 ```
 
 Requires Node.js ≥ 20 and Ollama running locally for AI reducers.
