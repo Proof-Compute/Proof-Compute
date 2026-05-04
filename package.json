@@ -1,5 +1,5 @@
 {
-  "name": "proof-compute",
+  "name": "@proof-compute/proof-compute",
   "version": "0.1.0",
   "description": "Deterministic compute with verifiable proofs. Same input = same output + cryptographic proof, everywhere.",
   "type": "module",
