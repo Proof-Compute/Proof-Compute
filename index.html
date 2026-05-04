@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proof Compute — Live Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #07080f;
+            --panel: #0e1020;
+            --border: #1e2240;
+            --teal: #00d4b8;
+            --teal-dim: #00907d;
+            --amber: #f0a500;
+            --amber-dim: #8a5f00;
+            --pink: #e040fb;
+            --green: #39ff6a;
+            --text: #c8cfe8;
+            --muted: #4a5170;
+            --code: 'Space Mono', monospace;
+            --display: 'Syne', sans-serif;
+            --radius: 8px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--code);
+            font-size: 13px;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Grid noise bg ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 212, 184, .03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 184, .03) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Header ── */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 28px 40px 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        .logo {
+            font-family: var(--display);
+            font-size: 22px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -.5px;
+        }
+
+        .logo span {
+            color: var(--teal);
+        }
+
+        .tagline {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 212, 184, .08);
+            border: 1px solid var(--teal-dim);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 11px;
+            color: var(--teal);
+        }
+
+        .badge::before {
+            content: '●';
+            font-size: 7px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .3;
+            }
+        }
+
+        /* ── Tabs ── */
+        .tabs {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            gap: 0;
+            padding: 16px 40px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            font-family: var(--code);
+            font-size: 12px;
+            cursor: pointer;
+            color: var(--muted);
+            border-bottom: 2px solid transparent;
+            transition: all .2s;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            letter-spacing: .03em;
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .tab.active {
+            color: var(--teal);
+            border-bottom-color: var(--teal);
+        }
+
+        /* ── Main Layout ── */
+        .main {
+            position: relative;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 240px 1fr 260px;
+            grid-template-rows: auto 1fr auto;
+            gap: 0;
+            height: calc(100vh - 145px);
+            min-height: 540px;
+        }
+
+        /* ── Panel base ── */
+        .panel {
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 10px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .panel-body {
+            padding: 14px 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .panel-body::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .panel-body::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        /* ── Events panel ── */
+        #panel-events {
+            grid-row: 1 / 3;
+        }
+
+        .event-item {
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: border-color .25s, box-shadow .25s;
+            cursor: default;
+        }
+
+        .event-item.active {
+            border-color: var(--amber);
+            box-shadow: 0 0 12px rgba(240, 165, 0, .18);
+        }
+
+        .event-item.done {
+            border-color: var(--teal-dim);
+            opacity: .7;
+        }
+
+        .event-item-header {
+            padding: 6px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .event-item.active .event-item-header {
+            background: rgba(240, 165, 0, .08);
+            color: var(--amber);
+        }
+
+        .event-item.done .event-item-header {
+            background: rgba(0, 212, 184, .05);
+            color: var(--teal-dim);
+        }
+
+        .event-item.pending .event-item-header {
+            background: var(--panel);
+            color: var(--muted);
+        }
+
+        .seq-badge {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .active .seq-badge {
+            background: var(--amber);
+            color: #000;
+        }
+
+        .done .seq-badge {
+            background: var(--teal-dim);
+            color: #000;
+        }
+
+        .pending .seq-badge {
+            background: var(--border);
+            color: var(--muted);
+        }
+
+        .event-body {
+            padding: 8px 10px;
+            font-size: 11px;
+            color: var(--text);
+        }
+
+        .kv-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+
+        .kv-key {
+            color: var(--muted);
+            min-width: 60px;
+        }
+
+        .kv-val {
+            color: var(--green);
+            word-break: break-all;
+        }
+
+        /* ── Center stage ── */
+        #stage {
+            grid-row: 1 / 3;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #stage-header {
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 10px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .step-label {
+            font-size: 11px;
+            letter-spacing: .04em;
+            color: var(--teal);
+            text-transform: none;
+        }
+
+        /* ── DAG viz ── */
+        #dag-wrap {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .dag-node {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--panel);
+            padding: 12px 16px;
+            position: relative;
+            transition: all .35s cubic-bezier(.34, 1.56, .64, 1);
+            transform-origin: left center;
+            opacity: 0;
+            transform: translateX(-20px) scale(.97);
+        }
+
+        .dag-node.visible {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+
+        .dag-node.highlight {
+            border-color: var(--amber);
+            box-shadow: 0 0 20px rgba(240, 165, 0, .15), inset 0 0 30px rgba(240, 165, 0, .04);
+        }
+
+        .dag-node.settled {
+            border-color: var(--teal-dim);
+        }
+
+        .dag-seq {
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .dag-flow {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .dag-box {
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 8px 10px;
+        }
+
+        .dag-box-label {
+            font-size: 9px;
+            color: var(--muted);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .dag-box-val {
+            font-size: 12px;
+            color: var(--text);
+            word-break: break-all;
+        }
+
+        .dag-arrow {
+            font-size: 18px;
+            color: var(--amber);
+            text-align: center;
+            line-height: 1;
+        }
+
+        .cid-line {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-top: 6px;
+            padding: 5px 8px;
+            background: rgba(0, 212, 184, .04);
+            border-radius: 4px;
+            border-left: 2px solid var(--teal-dim);
+        }
+
+        .cid-label {
+            font-size: 9px;
+            color: var(--teal-dim);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .cid-val {
+            font-size: 10px;
+            color: var(--teal);
+            word-break: break-all;
+        }
+
+        /* ── Controls ── */
+        #controls {
+            grid-column: 2 / 3;
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid;
+            font-family: var(--code);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all .15s;
+            letter-spacing: .04em;
+        }
+
+        .btn-primary {
+            background: var(--teal);
+            border-color: var(--teal);
+            color: #000;
+            font-weight: 700;
+        }
+
+        .btn-primary:hover {
+            background: #00f7d6;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--teal-dim);
+            color: var(--teal);
+        }
+
+        .btn:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+
+        .progress-wrap {
+            flex: 1;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--teal), var(--amber));
+            border-radius: 2px;
+            width: 0%;
+            transition: width .4s ease;
+        }
+
+        .step-counter {
+            font-size: 11px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        /* ── State panel ── */
+        #panel-state {
+            grid-row: 1 / 2;
+            border-right: none;
+        }
+
+        .state-json {
+            font-size: 11px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.7;
+        }
+
+        /* ── Proof panel ── */
+        #panel-proof {
+            grid-row: 2 / 3;
+            border-right: none;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .proof-row {
+            margin-bottom: 12px;
+        }
+
+        .proof-label {
+            font-size: 9px;
+            color: var(--muted);
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .proof-val {
+            font-size: 10px;
+            color: var(--teal);
+            word-break: break-all;
+            background: rgba(0, 212, 184, .05);
+            border: 1px solid rgba(0, 212, 184, .12);
+            border-radius: 4px;
+            padding: 5px 8px;
+        }
+
+        .proof-val.amber {
+            color: var(--amber);
+            background: rgba(240, 165, 0, .05);
+            border-color: rgba(240, 165, 0, .12);
+        }
+
+        .proof-val.pink {
+            color: var(--pink);
+            background: rgba(224, 64, 251, .05);
+            border-color: rgba(224, 64, 251, .12);
+        }
+
+        .proof-val.pending {
+            color: var(--muted);
+            background: transparent;
+            border-color: var(--border);
+        }
+
+        /* ── Merkle viz ── */
+        #merkle-wrap {
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .merkle-row {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .merkle-node {
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            word-break: break-all;
+            max-width: 100px;
+            text-align: center;
+            transition: all .3s;
+        }
+
+        .merkle-node.leaf {
+            background: rgba(0, 212, 184, .08);
+            border: 1px solid var(--teal-dim);
+            color: var(--teal);
+        }
+
+        .merkle-node.internal {
+            background: rgba(240, 165, 0, .08);
+            border: 1px solid var(--amber-dim);
+            color: var(--amber);
+        }
+
+        .merkle-node.root {
+            background: rgba(224, 64, 251, .12);
+            border: 1px solid var(--pink);
+            color: var(--pink);
+        }
+
+        /* ── Speech Bubbles ── */
+        .bubble-overlay {
+            position: fixed;
+            z-index: 100;
+            pointer-events: none;
+            inset: 0;
+        }
+
+        .bubble {
+            position: absolute;
+            background: #1a1f3a;
+            border: 1px solid var(--teal);
+            border-radius: 12px;
+            padding: 14px 18px;
+            max-width: 300px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .6), 0 0 20px rgba(0, 212, 184, .1);
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--text);
+            opacity: 0;
+            transform: scale(.9) translateY(6px);
+            transition: opacity .35s ease, transform .35s cubic-bezier(.34, 1.56, .64, 1);
+            pointer-events: all;
+        }
+
+        .bubble.amber-bubble {
+            border-color: var(--amber);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .6), 0 0 20px rgba(240, 165, 0, .1);
+        }
+
+        .bubble.pink-bubble {
+            border-color: var(--pink);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .6), 0 0 20px rgba(224, 64, 251, .1);
+        }
+
+        .bubble.show {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        .bubble::before {
+            content: '';
+            position: absolute;
+            border: 7px solid transparent;
+        }
+
+        .bubble.arrow-bottom::before {
+            bottom: -14px;
+            left: 30px;
+            border-top-color: var(--teal);
+        }
+
+        .bubble.arrow-top::before {
+            top: -14px;
+            left: 30px;
+            border-bottom-color: var(--teal);
+        }
+
+        .bubble.amber-bubble.arrow-bottom::before {
+            border-top-color: var(--amber);
+        }
+
+        .bubble.amber-bubble.arrow-top::before {
+            border-bottom-color: var(--amber);
+        }
+
+        .bubble.pink-bubble.arrow-bottom::before {
+            border-top-color: var(--pink);
+        }
+
+        .bubble-title {
+            font-size: 10px;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .bubble-title.teal {
+            color: var(--teal);
+        }
+
+        .bubble-title.amber {
+            color: var(--amber);
+        }
+
+        .bubble-title.pink {
+            color: var(--pink);
+        }
+
+        .bubble-dismiss {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 10px;
+            color: var(--muted);
+            cursor: pointer;
+            pointer-events: all;
+            transition: all .15s;
+        }
+
+        .bubble-dismiss:hover {
+            border-color: var(--teal-dim);
+            color: var(--teal);
+        }
+
+        code {
+            color: var(--green);
+            background: rgba(57, 255, 106, .08);
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: .9em;
+        }
+
+        /* ── Finish banner ── */
+        #finish-banner {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(7, 8, 15, .88);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            text-align: center;
+            padding: 40px;
+        }
+
+        #finish-banner.show {
+            display: flex;
+        }
+
+        .finish-title {
+            font-family: var(--display);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--teal);
+            letter-spacing: -.5px;
+        }
+
+        .finish-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            width: 100%;
+            max-width: 500px;
+            text-align: left;
+        }
+
+        .finish-cell {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 12px;
+        }
+
+        .finish-cell-label {
+            font-size: 9px;
+            color: var(--muted);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .finish-cell-val {
+            font-size: 10px;
+            word-break: break-all;
+        }
+
+        .finish-cell-val.teal {
+            color: var(--teal);
+        }
+
+        .finish-cell-val.amber {
+            color: var(--amber);
+        }
+
+        .finish-cell-val.pink {
+            color: var(--pink);
+        }
+
+        /* ── Syntax highlight helpers ── */
+        .j-string {
+            color: #e6c27a;
+        }
+
+        .j-number {
+            color: var(--green);
+        }
+
+        .j-key {
+            color: #80a4ff;
+        }
+
+        .j-bool {
+            color: var(--pink);
+        }
+
+        .j-null {
+            color: var(--muted);
+        }
+
+        /* ── Scrollbar ── */
+        #dag-wrap::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        #dag-wrap::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div>
+            <div class="logo">Proof<span>Compute</span></div>
+            <div class="tagline">Deterministic compute with verifiable proofs</div>
+        </div>
+        <div class="badge">Live Interactive Demo</div>
+    </header>
+
+    <div class="tabs">
+        <button class="tab active" data-scenario="sum">① Sum Accumulator</button>
+        <button class="tab" data-scenario="ledger">② Financial Ledger</button>
+        <button class="tab" data-scenario="kv">③ Code Review KV</button>
+    </div>
+
+    <div class="main">
+
+        <!-- Events panel -->
+        <div class="panel" id="panel-events">
+            <div class="panel-header">
+                <span>Input Events</span>
+                <span id="event-count-label"></span>
+            </div>
+            <div class="panel-body" id="events-list"></div>
+        </div>
+
+        <!-- Center stage -->
+        <div id="stage">
+            <div id="stage-header">
+                <span>Execution DAG</span>
+                <span class="step-label" id="step-label">Ready to run</span>
+            </div>
+            <div id="dag-wrap"></div>
+            <div id="finish-banner">
+                <div class="finish-title">✓ Proof Complete</div>
+                <p style="color:var(--muted);font-size:12px;max-width:380px">Same input will produce these exact CIDs on every machine, every time.</p>
+                <div class="finish-grid" id="finish-grid"></div>
+                <button class="btn btn-secondary" onclick="resetDemo()">↺ Run Again</button>
+            </div>
+        </div>
+
+        <!-- Controls (bottom of center) -->
+        <div id="controls">
+            <button class="btn btn-primary" id="btn-play" onclick="stepForward()">▶ Step</button>
+            <button class="btn btn-secondary" id="btn-auto" onclick="toggleAuto()">⏩ Auto</button>
+            <div class="progress-wrap">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <span class="step-counter" id="step-counter">0 / 0</span>
+            <button class="btn btn-secondary" onclick="resetDemo()">↺</button>
+        </div>
+
+        <!-- State panel -->
+        <div class="panel" id="panel-state">
+            <div class="panel-header">Current State</div>
+            <div class="panel-body">
+                <div class="state-json" id="state-display">—</div>
+            </div>
+        </div>
+
+        <!-- Proof panel -->
+        <div class="panel" id="panel-proof">
+            <div class="panel-header">Proof</div>
+            <div class="panel-body">
+                <div class="proof-row">
+                    <div class="proof-label">Input CID</div>
+                    <div class="proof-val pending" id="proof-input-cid">not yet computed</div>
+                </div>
+                <div class="proof-row">
+                    <div class="proof-label">Output CID</div>
+                    <div class="proof-val amber pending" id="proof-output-cid">not yet computed</div>
+                </div>
+                <div class="proof-row">
+                    <div class="proof-label">DAG Root (Merkle)</div>
+                    <div class="proof-val pink pending" id="proof-dag-root">not yet computed</div>
+                </div>
+                <div class="proof-row">
+                    <div class="proof-label">Merkle Tree</div>
+                    <div id="merkle-wrap"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bubble overlay -->
+    <div class="bubble-overlay" id="bubble-overlay"></div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════
+        // PROOF COMPUTE — Browser implementation
+        // ═══════════════════════════════════════════════════════════
+
+        // ── Canonical JSON (keys sorted, no whitespace) ──
+        function canonical(value) {
+            if (value === null) return 'null';
+            const t = typeof value;
+            if (t === 'boolean') return value ? 'true' : 'false';
+            if (t === 'number') {
+                if (!Number.isFinite(value)) throw new Error('Non-finite number');
+                return String(value);
+            }
+            if (t === 'string') return JSON.stringify(value);
+            if (t === 'object') {
+                if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
+                const keys = Object.keys(value).sort();
+                return '{' + keys.map(k => JSON.stringify(k) + ':' + canonical(value[k])).join(',') + '}';
+            }
+            throw new Error('Cannot serialize: ' + t);
+        }
+
+        // ── SHA-256 via SubtleCrypto ──
+        async function sha256hex(str) {
+            const buf = new TextEncoder().encode(str);
+            const hash = await crypto.subtle.digest('SHA-256', buf);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function sha256hexRaw(bytes) {
+            const hash = await crypto.subtle.digest('SHA-256', bytes);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function cidOf(value) {
+            const json = canonical(value);
+            const h = await sha256hex(json);
+            return 'cid:sha256:' + h;
+        }
+
+        async function hashOf(value) {
+            const json = canonical(value);
+            return await sha256hex(json);
+        }
+
+        // ── Merkle root ──
+        async function merkleRoot(hashes) {
+            if (hashes.length === 1) return hashes[0];
+            let level = [...hashes];
+            while (level.length > 1) {
+                const next = [];
+                for (let i = 0; i < level.length; i += 2) {
+                    const left = level[i];
+                    const right = level[i + 1] || level[i];
+                    const combined = left + right;
+                    const bytes = new Uint8Array(combined.match(/.{2}/g).map(h => parseInt(h, 16)));
+                    next.push(await sha256hexRaw(bytes));
+                }
+                level = next;
+            }
+            return level[0];
+        }
+
+        // ── Reducers ──
+        const reducers = {
+            'core/sum': (state, event) => {
+                if (event.type === 'add') return state + event.amount;
+                if (event.type === 'reset') return 0;
+                throw new Error('Unknown event: ' + event.type);
+            },
+            'core/kv': (state, event) => {
+                if (event.type === 'set') return {
+                    ...state,
+                    [event.key]: event.value
+                };
+                if (event.type === 'del') {
+                    const n = {
+                        ...state
+                    };
+                    delete n[event.key];
+                    return n;
+                }
+                if (event.type === 'clear') return {};
+                throw new Error('Unknown event: ' + event.type);
+            },
+            'core/ledger': (state, event) => {
+                if (event.type === 'entry') {
+                    const entries = [...state.entries];
+                    const bal = entries.length > 0 ? entries[entries.length - 1].balance : 0;
+                    entries.push({
+                        id: event.id,
+                        entryType: event.entryType,
+                        amount: event.amount,
+                        balance: bal + event.amount,
+                        seq: entries.length
+                    });
+                    return {
+                        ...state,
+                        entries
+                    };
+                }
+                if (event.type === 'clear') return {
+                    ...state,
+                    entries: []
+                };
+                throw new Error('Unknown event: ' + event.type);
+            }
+        };
+
+        // ═══════════════════════════════════════════════════════════
+        // SCENARIOS
+        // ═══════════════════════════════════════════════════════════
+        const SCENARIOS = {
+            sum: {
+                label: 'Sum Accumulator',
+                reducer: 'core/sum',
+                initialState: 0,
+                events: [{
+                        type: 'add',
+                        amount: 1
+                    },
+                    {
+                        type: 'add',
+                        amount: 2
+                    },
+                    {
+                        type: 'add',
+                        amount: 3
+                    }
+                ]
+            },
+            ledger: {
+                label: 'Financial Ledger',
+                reducer: 'core/ledger',
+                initialState: {
+                    entries: []
+                },
+                events: [{
+                        type: 'entry',
+                        id: 'deposit-001',
+                        entryType: 'deposit',
+                        amount: 10000
+                    },
+                    {
+                        type: 'entry',
+                        id: 'payment-001',
+                        entryType: 'payment',
+                        amount: -2500
+                    },
+                    {
+                        type: 'entry',
+                        id: 'fee-001',
+                        entryType: 'fee',
+                        amount: -50
+                    },
+                    {
+                        type: 'entry',
+                        id: 'interest-001',
+                        entryType: 'interest',
+                        amount: 125
+                    }
+                ]
+            },
+            kv: {
+                label: 'Code Review KV',
+                reducer: 'core/kv',
+                initialState: {},
+                events: [{
+                        type: 'set',
+                        key: 'codeHash',
+                        value: 'sha256:abc123'
+                    },
+                    {
+                        type: 'set',
+                        key: 'reviewStatus',
+                        value: 'approved'
+                    },
+                    {
+                        type: 'set',
+                        key: 'reviewer',
+                        value: 'alice@example.com'
+                    },
+                    {
+                        type: 'set',
+                        key: 'timestamp',
+                        value: 1704067200
+                    }
+                ]
+            }
+        };
+
+        // ═══════════════════════════════════════════════════════════
+        // STATE
+        // ═══════════════════════════════════════════════════════════
+        let currentScenario = 'sum';
+        let currentStep = -1; // -1 = not started
+        let dagNodes = []; // computed dag nodes
+        let allHashes = [];
+        let autoTimer = null;
+        let isAuto = false;
+        let flow = null;
+        let stateHistory = [];
+        let inputCid = null;
+
+        // ═══════════════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════════════
+        async function init(scenarioKey) {
+            currentScenario = scenarioKey;
+            const s = SCENARIOS[scenarioKey];
+            flow = {
+                reducer: s.reducer,
+                initialState: s.initialState,
+                events: s.events
+            };
+
+            // Pre-compute everything
+            dagNodes = [];
+            stateHistory = [s.initialState];
+            allHashes = [];
+
+            // State 0
+            const h0 = await hashOf(s.initialState);
+            const c0 = 'cid:sha256:' + h0;
+            allHashes.push(h0);
+            dagNodes.push({
+                seq: 0,
+                state: s.initialState,
+                stateCid: c0,
+                stateHash: h0,
+                event: null,
+                eventCid: null,
+                prevStateCid: null
+            });
+
+            // Apply each event
+            let state = s.initialState;
+            const reducer = reducers[s.reducer];
+            for (let i = 0; i < s.events.length; i++) {
+                const event = s.events[i];
+                const prevCid = dagNodes[dagNodes.length - 1].stateCid;
+                const nextState = reducer(state, event);
+                const h = await hashOf(nextState);
+                const sc = 'cid:sha256:' + h;
+                const ec = await cidOf(event);
+                allHashes.push(h);
+                dagNodes.push({
+                    seq: i + 1,
+                    state: nextState,
+                    stateCid: sc,
+                    stateHash: h,
+                    event,
+                    eventCid: ec,
+                    prevStateCid: prevCid
+                });
+                stateHistory.push(nextState);
+                state = nextState;
+            }
+
+            inputCid = await cidOf(flow);
+
+            currentStep = -1;
+            isAuto = false;
+            if (autoTimer) {
+                clearInterval(autoTimer);
+                autoTimer = null;
+            }
+
+            renderEventsList();
+            renderDagEmpty();
+            updateStateDisplay(s.initialState);
+            updateProofPanel(null);
+            updateProgress();
+            document.getElementById('step-label').textContent = 'Ready — press Step or Auto';
+            document.getElementById('finish-banner').classList.remove('show');
+            document.getElementById('btn-auto').textContent = '⏩ Auto';
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // UI RENDERS
+        // ═══════════════════════════════════════════════════════════
+        function renderEventsList() {
+            const s = SCENARIOS[currentScenario];
+            const el = document.getElementById('events-list');
+            document.getElementById('event-count-label').textContent = s.events.length + ' events';
+
+            el.innerHTML = '';
+
+            // Initial state
+            const init_item = document.createElement('div');
+            init_item.className = 'event-item done';
+            init_item.id = 'ev-init';
+            init_item.innerHTML = `
+    <div class="event-item-header">
+      <div class="seq-badge">0</div>
+      <span>Initial State</span>
+    </div>
+    <div class="event-body">
+      ${renderKV({ state: JSON.stringify(s.initialState) })}
+    </div>`;
+            el.appendChild(init_item);
+
+            s.events.forEach((ev, i) => {
+                const item = document.createElement('div');
+                item.className = 'event-item pending';
+                item.id = 'ev-' + i;
+                const kvs = Object.entries(ev).map(([k, v]) => `<div class="kv-row"><span class="kv-key">${k}</span><span class="kv-val">${JSON.stringify(v)}</span></div>`).join('');
+                item.innerHTML = `
+      <div class="event-item-header">
+        <div class="seq-badge">${i+1}</div>
+        <span>${ev.type}</span>
+      </div>
+      <div class="event-body">${kvs}</div>`;
+                el.appendChild(item);
+            });
+        }
+
+        function renderKV(obj) {
+            return Object.entries(obj).map(([k, v]) =>
+                `<div class="kv-row"><span class="kv-key">${k}</span><span class="kv-val">${JSON.stringify(v)}</span></div>`
+            ).join('');
+        }
+
+        function renderDagEmpty() {
+            const wrap = document.getElementById('dag-wrap');
+            wrap.innerHTML = '';
+        }
+
+        function syntaxHighlight(val) {
+            if (val === null || val === undefined) return '<span class="j-null">null</span>';
+            const str = JSON.stringify(val, null, 2);
+            return str
+                .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*")\s*:/g, '<span class="j-key">$1</span>:')
+                .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*")/g, '<span class="j-string">$1</span>')
+                .replace(/\b(-?\d+(\.\d+)?)\b/g, '<span class="j-number">$1</span>')
+                .replace(/\b(true|false)\b/g, '<span class="j-bool">$1</span>')
+                .replace(/\bnull\b/g, '<span class="j-null">null</span>');
+        }
+
+        function updateStateDisplay(state) {
+            document.getElementById('state-display').innerHTML = syntaxHighlight(state);
+        }
+
+        function shortCid(cid) {
+            return cid.slice(0, 22) + '…' + cid.slice(-8);
+        }
+
+        function updateProofPanel(step) {
+            const inputEl = document.getElementById('proof-input-cid');
+            const outputEl = document.getElementById('proof-output-cid');
+            const rootEl = document.getElementById('proof-dag-root');
+
+            if (step === null) {
+                inputEl.className = 'proof-val pending';
+                inputEl.textContent = 'not yet computed';
+                outputEl.className = 'proof-val amber pending';
+                outputEl.textContent = 'not yet computed';
+                rootEl.className = 'proof-val pink pending';
+                rootEl.textContent = 'not yet computed';
+                document.getElementById('merkle-wrap').innerHTML = '';
+                return;
+            }
+
+            // Input CID always available after step 0
+            if (inputCid) {
+                inputEl.className = 'proof-val';
+                inputEl.textContent = inputCid;
+            }
+
+            const node = dagNodes[step];
+            outputEl.className = 'proof-val amber';
+            outputEl.textContent = node.stateCid;
+
+            // Merkle only when all done
+            if (step === dagNodes.length - 1) {
+                merkleRoot(allHashes).then(root => {
+                    rootEl.className = 'proof-val pink';
+                    rootEl.textContent = 'cid:sha256:' + root;
+                    renderMerkleTree(allHashes, root);
+                });
+            }
+        }
+
+        function renderMerkleTree(hashes, root) {
+            const wrap = document.getElementById('merkle-wrap');
+            wrap.innerHTML = '';
+
+            // Leaves
+            const leafRow = document.createElement('div');
+            leafRow.className = 'merkle-row';
+            hashes.forEach((h, i) => {
+                const node = document.createElement('div');
+                node.className = 'merkle-node leaf';
+                node.textContent = 's' + i + ':' + h.slice(0, 8) + '…';
+                node.title = h;
+                leafRow.appendChild(node);
+            });
+            wrap.appendChild(leafRow);
+
+            // Summarized root
+            const rootRow = document.createElement('div');
+            rootRow.className = 'merkle-row';
+            const rootNode = document.createElement('div');
+            rootNode.className = 'merkle-node root';
+            rootNode.textContent = '⬡ ' + root.slice(0, 10) + '…';
+            rootNode.title = root;
+            rootRow.appendChild(rootNode);
+            wrap.appendChild(rootRow);
+        }
+
+        function updateProgress() {
+            const total = dagNodes.length - 1; // steps = num events
+            const done = Math.max(0, currentStep);
+            const pct = total === 0 ? 0 : (done / total) * 100;
+            document.getElementById('progress-bar').style.width = pct + '%';
+            document.getElementById('step-counter').textContent = done + ' / ' + total;
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // STEP ENGINE
+        // ═══════════════════════════════════════════════════════════
+        const BUBBLES = {
+            sum: [{
+                    title: 'Initial State',
+                    color: 'teal',
+                    arrow: 'arrow-bottom',
+                    pos: {
+                        bottom: '200px',
+                        left: '280px'
+                    },
+                    text: 'This is your <code>initialState = 0</code>. Every execution starts here. The state is hashed with SHA-256 to form the first DAG node.'
+                },
+                {
+                    title: 'Event Applied',
+                    color: 'amber',
+                    arrow: 'arrow-bottom',
+                    pos: {
+                        bottom: '200px',
+                        left: '280px'
+                    },
+                    text: 'Event <code>{ type: "add", amount: 1 }</code> is passed through the <code>core/sum</code> reducer — a pure function. <code>0 + 1 = 1</code>. No side-effects, ever.'
+                },
+                {
+                    title: 'CID Computed',
+                    color: 'teal',
+                    arrow: 'arrow-bottom',
+                    pos: {
+                        bottom: '200px',
+                        left: '280px'
+                    },
+                    text: 'The new state <code>1</code> is serialized to canonical JSON (sorted keys, no whitespace), then SHA-256 hashed. This gives a <em>content identifier</em> unique to this exact value.'
+                },
+                {
+                    title: 'Merkle Proof Ready',
+                    color: 'pink',
+                    arrow: 'arrow-top',
+                    pos: {
+                        top: '160px',
+                        left: '280px'
+                    },
+                    text: 'All state hashes are combined into a <strong>Merkle tree</strong>. The root is a single fingerprint for the entire execution history. Share it — anyone can verify.'
+                }
+            ],
+            ledger: [{
+                    title: 'Empty Ledger',
+                    color: 'teal',
+                    arrow: 'arrow-bottom',
+                    pos: {
+                        bottom: '200px',
+                        left: '280px'
+                    },
+                    text: 'The ledger starts empty: <code>{ entries: [] }</code>. This object is canonically serialized and hashed — the initial CID is deterministic across every machine.'
+                },
+                {
+                    title: 'Deposit Entry',
+                    color: 'amber',
+                    arrow: 'arrow-bottom',
+                    pos: {
+                        bottom: '200px',
+                        left: '280px'
+                    },
+                    text: 'A deposit of <code>$10,000</code> is applied. The reducer is pure — it returns a new state object. The old state is never mutated.'
+                },
+                {
+                    title: 'Running Balance',
+                    color: 'teal',
+                    arrow: 'arrow-bottom',
+                    pos: {
+                        bottom: '200px',
+                        left: '280px'
+                    },
+                    text: 'Each entry carries the running balance. The state CID changes because the state changed — the hash changes every time.'
+                },
+                {
+                    title: 'Fee Applied',
+                    color: 'amber',
+                    arrow: 'arrow-bottom',
+                    pos: {
+                        bottom: '200px',
+                        left: '280px'
+                    },
+                    text: 'A <code>-$50</code> fee is applied. The DAG grows — each node links <code>prevStateCid → event → stateCid</code>, creating an auditable chain.'
+                },
+                {
+                    title: 'Full Audit Trail',
+                    color: 'pink',
+                    arrow: 'arrow-top',
+                    pos: {
+                        top: '160px',
+                        left: '280px'
+                    },
+                    text: 'The Merkle root covers every state in the chain. <strong>Any tampering with any entry changes the root.</strong> This is an immutable, verifiable financial record.'
+                }
+            ],
+            kv: [{
+                    title: 'Empty Store',
+                    color: 'teal',
+                    arrow: 'arrow-bottom',
+                    pos: {
+                        bottom: '200px',
+                        left: '280px'
+                    },
+                    text: 'The KV store begins empty: <code>{}</code>. Its CID is the SHA-256 of the canonical JSON string <code>"{}"</code> — reproducible anywhere.'
+                },
+                {
+                    title: 'Code Hash Stored',
+                    color: 'amber',
+                    arrow: 'arrow-bottom',
+                    pos: {
+                        bottom: '200px',
+                        left: '280px'
+                    },
+                    text: '<code>codeHash</code> is set. This permanently records which exact code artifact was reviewed. The state CID now covers this key-value pair.'
+                },
+                {
+                    title: 'Approval Recorded',
+                    color: 'teal',
+                    arrow: 'arrow-bottom',
+                    pos: {
+                        bottom: '200px',
+                        left: '280px'
+                    },
+                    text: '<code>reviewStatus: "approved"</code> is written. Keys are always sorted alphabetically in canonical form — so <code>codeHash</code> comes before <code>reviewStatus</code> in the hash input.'
+                },
+                {
+                    title: 'Reviewer Identity',
+                    color: 'amber',
+                    arrow: 'arrow-bottom',
+                    pos: {
+                        bottom: '200px',
+                        left: '280px'
+                    },
+                    text: 'The reviewer\'s identity is stored. Any future dispute can replay these exact events and produce the same CIDs — proving who approved what.'
+                },
+                {
+                    title: 'Tamper-Proof Audit',
+                    color: 'pink',
+                    arrow: 'arrow-top',
+                    pos: {
+                        top: '160px',
+                        left: '280px'
+                    },
+                    text: 'The Merkle root fingerprints the entire review session. Publish it to a ledger, a git commit, or a timestamp service — the proof is now permanent.'
+                }
+            ]
+        };
+
+        let activeBubble = null;
+
+        function showBubble(stepIdx) {
+            hideBubble();
+            const s = SCENARIOS[currentScenario];
+            const bs = BUBBLES[currentScenario];
+            const bi = stepIdx < bs.length ? stepIdx : bs.length - 1;
+            const b = bs[bi];
+            if (!b) return;
+
+            const overlay = document.getElementById('bubble-overlay');
+            const el = document.createElement('div');
+            el.className = 'bubble ' + (b.color === 'teal' ? '' : b.color + '-bubble ') + b.arrow;
+            Object.assign(el.style, b.pos);
+
+            const colorClass = b.color === 'teal' ? 'teal' : b.color === 'amber' ? 'amber' : 'pink';
+            el.innerHTML = `
+    <div class="bubble-title ${colorClass}">${b.title}</div>
+    <div>${b.text}</div>
+    <div class="bubble-dismiss" onclick="hideBubble()">Got it →</div>
+  `;
+            overlay.appendChild(el);
+            activeBubble = el;
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => el.classList.add('show'));
+            });
+        }
+
+        function hideBubble() {
+            if (activeBubble) {
+                activeBubble.remove();
+                activeBubble = null;
+            }
+        }
+
+        async function stepForward() {
+            hideBubble();
+            const nextStep = currentStep + 1;
+            if (nextStep >= dagNodes.length) return;
+
+            currentStep = nextStep;
+
+            // Render DAG node
+            const node = dagNodes[currentStep];
+            const wrap = document.getElementById('dag-wrap');
+
+            // Update previous node style
+            wrap.querySelectorAll('.dag-node.highlight').forEach(n => {
+                n.classList.remove('highlight');
+                n.classList.add('settled');
+            });
+
+            // Create new node
+            const el = document.createElement('div');
+            el.className = 'dag-node highlight';
+            el.id = 'dag-node-' + currentStep;
+
+            let eventHtml = '';
+            if (node.event) {
+                const kvs = Object.entries(node.event)
+                    .map(([k, v]) => `<div class="kv-row"><span class="kv-key">${k}</span><span class="kv-val">${JSON.stringify(v)}</span></div>`)
+                    .join('');
+                eventHtml = `
+      <div class="dag-flow">
+        <div class="dag-box">
+          <div class="dag-box-label">Previous State</div>
+          <div class="dag-box-val">${shortCid(node.prevStateCid)}</div>
+        </div>
+        <div class="dag-arrow">⟶</div>
+        <div class="dag-box">
+          <div class="dag-box-label">Event #${currentStep}</div>
+          <div class="dag-box-val">${kvs}</div>
+        </div>
+      </div>`;
+            }
+
+            el.innerHTML = `
+    <div class="dag-seq">DAG Node — Seq ${currentStep}</div>
+    ${eventHtml}
+    <div class="cid-line">
+      <span class="cid-label">State CID</span>
+      <span class="cid-val">${node.stateCid}</span>
+    </div>
+    ${node.eventCid ? `<div class="cid-line" style="border-left-color:var(--amber-dim)">
+      <span class="cid-label" style="color:var(--amber-dim)">Event CID</span>
+      <span class="cid-val" style="color:var(--amber)">${node.eventCid}</span>
+    </div>` : ''}
+  `;
+
+            wrap.appendChild(el);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => el.classList.add('visible'));
+            });
+
+            wrap.scrollTop = wrap.scrollHeight;
+
+            // Update event list items
+            if (currentStep > 0) {
+                const prevEl = document.getElementById('ev-' + (currentStep - 2));
+                if (prevEl) {
+                    prevEl.className = 'event-item done';
+                }
+                const curEl = document.getElementById('ev-' + (currentStep - 1));
+                if (curEl) {
+                    curEl.className = 'event-item active';
+                }
+            }
+
+            updateStateDisplay(node.state);
+            updateProofPanel(currentStep);
+            updateProgress();
+
+            const totalSteps = dagNodes.length;
+            document.getElementById('step-label').textContent =
+                'Step ' + currentStep + ' of ' + (totalSteps - 1);
+
+            // Show bubble
+            showBubble(currentStep);
+
+            // Check done
+            if (currentStep === dagNodes.length - 1) {
+                // Mark last event done
+                const lastEvEl = document.getElementById('ev-' + (currentStep - 1));
+                if (lastEvEl) lastEvEl.className = 'event-item done';
+
+                if (isAuto) {
+                    clearInterval(autoTimer);
+                    autoTimer = null;
+                    isAuto = false;
+                    document.getElementById('btn-auto').textContent = '⏩ Auto';
+                }
+
+                // Wait a beat then show finish
+                setTimeout(() => {
+                    hideBubble();
+                    showFinish();
+                }, 2000);
+            }
+        }
+
+        async function showFinish() {
+            const lastNode = dagNodes[dagNodes.length - 1];
+            const root = await merkleRoot(allHashes);
+            const grid = document.getElementById('finish-grid');
+            grid.innerHTML = `
+    <div class="finish-cell">
+      <div class="finish-cell-label">Input CID</div>
+      <div class="finish-cell-val teal">${inputCid}</div>
+    </div>
+    <div class="finish-cell">
+      <div class="finish-cell-label">Output CID</div>
+      <div class="finish-cell-val amber">${lastNode.stateCid}</div>
+    </div>
+    <div class="finish-cell" style="grid-column:1/-1">
+      <div class="finish-cell-label">DAG Merkle Root</div>
+      <div class="finish-cell-val pink">cid:sha256:${root}</div>
+    </div>
+    <div class="finish-cell" style="grid-column:1/-1">
+      <div class="finish-cell-label">DAG Size</div>
+      <div class="finish-cell-val teal">${dagNodes.length} nodes (initial + ${dagNodes.length-1} events)</div>
+    </div>
+  `;
+            document.getElementById('finish-banner').classList.add('show');
+        }
+
+        function toggleAuto() {
+            if (isAuto) {
+                clearInterval(autoTimer);
+                autoTimer = null;
+                isAuto = false;
+                document.getElementById('btn-auto').textContent = '⏩ Auto';
+            } else {
+                isAuto = true;
+                document.getElementById('btn-auto').textContent = '⏸ Pause';
+                autoTimer = setInterval(() => {
+                    if (currentStep >= dagNodes.length - 1) {
+                        clearInterval(autoTimer);
+                        autoTimer = null;
+                        isAuto = false;
+                        document.getElementById('btn-auto').textContent = '⏩ Auto';
+                        return;
+                    }
+                    stepForward();
+                }, 1800);
+                stepForward(); // kick off immediately
+            }
+        }
+
+        function resetDemo() {
+            hideBubble();
+            if (autoTimer) {
+                clearInterval(autoTimer);
+                autoTimer = null;
+            }
+            isAuto = false;
+            document.getElementById('btn-auto').textContent = '⏩ Auto';
+            init(currentScenario);
+        }
+
+        // ── Tab switching ──
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                init(tab.dataset.scenario);
+            });
+        });
+
+        // ── Boot ──
+        init('sum');
+    </script>
+</body>
+
+</html>
