@@ -1,0 +1,26 @@
+{
+  "reducer": "core/kv",
+  "initialState": {},
+  "events": [
+    {
+      "type": "set",
+      "key": "codeHash",
+      "value": "sha256:abc123"
+    },
+    {
+      "type": "set",
+      "key": "reviewStatus",
+      "value": "approved"
+    },
+    {
+      "type": "set",
+      "key": "reviewer",
+      "value": "alice@example.com"
+    },
+    {
+      "type": "set",
+      "key": "timestamp",
+      "value": 1704067200
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "reducer": "ai/code-review",
+  "initialState": {
+    "reviews": [],
+    "cacheHits": 0,
+    "cacheMisses": 0
+  },
+  "events": [
+    {
+      "type": "review",
+      "language": "javascript",
+      "code": "function add(a, b) { return a + b; }"
+    },
+    {
+      "type": "review",
+      "language": "javascript",
+      "code": "const password = 'hunter2'; eval(userInput);"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "name": "proof-compute",
+  "version": "0.1.0",
+  "description": "Deterministic compute with verifiable proofs. Same input = same output + cryptographic proof, everywhere.",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./kernel": "./src/kernel/index.js",
+    "./engine": "./src/engine/index.js",
+    "./node": "./src/node/index.js"
+  },
+  "bin": {
+    "proof-compute": "./src/cli.js"
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "test": "node --test src/**/*.test.js",
+    "prepublishOnly": "node --test src/**/*.test.js"
+  },
+  "keywords": [
+    "deterministic",
+    "proof",
+    "event-sourcing",
+    "verifiable",
+    "replay",
+    "cid",
+    "merkle",
+    "audit",
+    "compute",
+    "reducer"
+  ],
+  "author": "James Chapman",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jameschapman/proof-compute"
+  },
+  "homepage": "https://github.com/jameschapman/proof-compute#readme"
+}

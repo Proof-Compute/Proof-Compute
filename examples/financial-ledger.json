@@ -1,0 +1,30 @@
+{
+  "reducer": "core/ledger",
+  "initialState": { "entries": [] },
+  "events": [
+    {
+      "type": "entry",
+      "id": "deposit-001",
+      "entryType": "deposit",
+      "amount": 10000
+    },
+    {
+      "type": "entry",
+      "id": "payment-001",
+      "entryType": "payment",
+      "amount": -2500
+    },
+    {
+      "type": "entry",
+      "id": "fee-001",
+      "entryType": "fee",
+      "amount": -50
+    },
+    {
+      "type": "entry",
+      "id": "interest-001",
+      "entryType": "interest",
+      "amount": 125
+    }
+  ]
+}
