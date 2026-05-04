@@ -455,7 +455,11 @@ store.listCids('proofs') // All proofs ever generated
 
 ## License
 
-MIT — Free for commercial and personal use.
+AGPL-3.0 (open source) / Commercial License (businesses & governments)
+
+Free for qualifying open-source projects. A paid commercial license is
+required for businesses, government agencies, and proprietary/closed-source use.
+Contact xhecarpenxer@gmail.com for commercial licensing.
 
 ---
 

@@ -125,4 +125,9 @@ state[0] ──event[0]──▶ state[1] ──event[1]──▶ state[2]
 
 ## License
 
-MIT
+AGPL-3.0 (open source) / Commercial License (businesses & governments)
+
+Free for open-source projects. A paid commercial license is required for
+businesses, government agencies, and proprietary use.
+
+See [LICENSE](LICENSE) or contact xhecarpenxer@gmail.com for commercial licensing.
