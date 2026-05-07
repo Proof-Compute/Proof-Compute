@@ -41,7 +41,7 @@
   "license": "AGPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jameschapman/proof-compute"
+    "url": "https://github.com/Proof-Compute/Proof-Compute"
   },
-  "homepage": "https://github.com/jameschapman/proof-compute#readme"
+  "homepage": "https://github.com/Proof-Compute/Proof-Compute"
 }
